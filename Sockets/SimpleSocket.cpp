@@ -9,9 +9,6 @@ FRP::SimpleSocket::SimpleSocket(int domain, int service, int protocol, int port,
     //Estabish socket
     sock = socket(domain, service, protocol);
     test_connection(sock);
-    //Establish network connection
-    connection = connect_to_network(sock, address);
-    test_connection(connection);
 }
 
 //Test connection virtual function
@@ -35,16 +32,4 @@ struct sockaddr_in FRP::SimpleSocket::get_address()
 int FRP::SimpleSocket::get_sock()
 {
     return (sock);
-}
-
-int FRP::SimpleSocket::get_connection()
-{
-    return (connection);
-}
-
-// Setter functions
-
-void FRP::SimpleSocket::set_connection(int con)
-{
-    connection = con;
 }

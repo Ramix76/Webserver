@@ -10,7 +10,7 @@ FRP::ConnectingSocket::ConnectingSocket(int domain, int service, int protocol, i
 
 // Definition of the connect_to_network virtual function
 
-int FRP::ConnectingSocket::connect_to_network(int sock, struct sockaddr_in address)
+void FRP::ConnectingSocket::connect_to_network(int sock, struct sockaddr_in address)
 {
     return (connect(sock, (struct sockaddr *)&address, sizeof(address)));
 }
