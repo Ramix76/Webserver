@@ -20,7 +20,7 @@ void FRP::TestServer::handler()
 
 void FRP::TestServer::responder()
 {
-    char *hello = "Hello from server";
+    const char *hello = "Hello from server";
     write(new_socket, hello, strlen(hello));
     close(new_socket);
 }

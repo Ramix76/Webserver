@@ -1,7 +1,12 @@
 #ifndef SIMPLESERVER_HPP
 #define SIMPLESERVER_HPP
 
-#include "../FRP_networking.hpp"
+#include "ListeningSocket.hpp"
+#include <iostream>
+#include <stdio.h>
+#include <unistd.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
 
 namespace FRP
 {
