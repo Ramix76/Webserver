@@ -1,5 +1,11 @@
 #include "ListeningSocket.hpp"
 
+FRP::ListeningSocket::~ListeningSocket()
+{
+    // Llama al destructor de SimpleSocket para cerrar el socket
+    SimpleSocket::~SimpleSocket();
+}
+
 // Constructor
 FRP::ListeningSocket::ListeningSocket(int domain, int service, int protocol, int port, u_long interface, int bklg) : BindingSocket(domain, service, protocol, port, interface)
 {

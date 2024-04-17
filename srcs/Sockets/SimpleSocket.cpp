@@ -1,5 +1,14 @@
 #include "SimpleSocket.hpp"
 
+FRP::SimpleSocket::~SimpleSocket()
+{
+    if (sock >= 0)
+    {
+        close(sock);
+        sock = -1;
+    }
+}
+
 FRP::SimpleSocket::SimpleSocket(int domain, int service, int protocol, int port, u_long interface)
 {
     //Define address structure

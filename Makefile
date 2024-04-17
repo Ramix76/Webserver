@@ -6,7 +6,7 @@
 #    By: framos-p <framos-p@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/07/25 16:46:08 by framos-p          #+#    #+#              #
-#    Updated: 2024/04/15 12:29:53 by framos-p         ###   ########.fr        #
+#    Updated: 2024/04/17 16:19:40 by framos-p         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -21,8 +21,8 @@ SRCS_FILES			=	$(SRCS)main.cpp \
 						$(SRCS)Servers/TestServer.cpp \
 						$(SRCS)Sockets/SimpleSocket.cpp \
 						$(SRCS)Sockets/ListeningSocket.cpp \
-						$(SRCS)Sockets/BindingSocket.cpp 
-# $(SRCS)Sockets/ConnectingSocket.cpp
+						$(SRCS)Sockets/BindingSocket.cpp \
+						$(SRCS)Sockets/ConnectingSocket.cpp
 
 CC					=	g++
 CPPFLAGS			=	-g -I$(INC) -Wall -Wextra -Werror -MMD -std=c++98

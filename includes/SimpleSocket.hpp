@@ -33,6 +33,8 @@ namespace FRP
             // GETTERS 
             struct sockaddr_in get_address();
             int get_sock();
+
+            ~SimpleSocket();
     };
 }
 

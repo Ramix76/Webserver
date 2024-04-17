@@ -1,4 +1,7 @@
 #include "TestServer.hpp"
+#include "ConnectingSocket.hpp"
+#include <chrono>
+#include <thread>
 
 FRP::TestServer::TestServer() : SimpleServer(AF_INET, SOCK_STREAM, 0, 80, INADDR_ANY, 10)
 {
@@ -15,21 +18,36 @@ void FRP::TestServer::accepter()
 
 void FRP::TestServer::handler()
 {
-    std::cout << buffer << std::endl;
+    std::cout << "Request received:\n" << buffer << std::endl;
 }
 
 void FRP::TestServer::responder()
 {
-    const char *hello = "Hello from server";
-    write(new_socket, hello, strlen(hello));
-    close(new_socket);
+    const char *response = "HTTP/1.1 200 OK\r\n"
+                           "Content-Type: text/plain\r\n"
+                           "Content-Length: 14\r\n"
+                           "\r\n"
+                           "Hello, world!\r\n";
+    
+    write(new_socket, response, strlen(response));
 }
 
 void FRP::TestServer::launch()
 {
     std::cout << "====== WAITING... =======" << std::endl;
-    accepter();
-    handler();
-    responder();
-    std::cout << "======= DONE! =========" << std::endl;
+    // Crear una instancia de ConnectingSocket para manejar las conexiones entrantes
+    FRP::ConnectingSocket server_socket(AF_INET, SOCK_STREAM, 0, 80, INADDR_ANY);
+    while (true)
+    {
+        if (server_socket.get_connection() >= 0)
+        {
+            std::cout << "Connection established successfully!" << std::endl;
+            accepter();
+            handler();
+            responder();
+            std::cout << "======= DONE! =========" << std::endl;
+        }
+        else
+            std::cerr << "Failed to establish connection!" << std::endl;
+    }
 }

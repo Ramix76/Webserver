@@ -24,6 +24,8 @@ namespace FRP
             BindingSocket(int domain, int service, int protocol, int port, u_long interface);
             // GETTERS
             int get_binding();
+
+            ~BindingSocket();
     };
 }
 

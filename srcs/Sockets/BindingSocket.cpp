@@ -1,5 +1,11 @@
 #include "BindingSocket.hpp"
 
+FRP::BindingSocket::~BindingSocket()
+{
+    // Llama al destructor de SimpleSocket para cerrar el socket
+    SimpleSocket::~SimpleSocket();
+}
+
 // Constructor
 FRP::BindingSocket::BindingSocket(int domain, int service, int protocol, int port, u_long interface) : SimpleSocket(domain, service, protocol, port, interface)
 {

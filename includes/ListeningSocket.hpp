@@ -21,6 +21,8 @@ namespace FRP
             void start_listening();
             int get_backlog();
             int get_listening();
+
+            ~ListeningSocket();
     };
 }
 
