@@ -1,7 +1,34 @@
 #include "SocketServer.hpp"
+#include "HTTPRequest.hpp"
 
-SocketServer::SocketServer(int port) {
-    // Create a socket
+SocketServer::SocketServer(const std::string& configFile) {
+    // Leer y analizar el archivo de configuración
+    std::ifstream file(configFile);
+    if (file.is_open()) {
+        std::string line;
+        while (std::getline(file, line)) {
+            std::istringstream iss(line);
+            std::string key, value;
+            if (std::getline(iss, key, '=') && std::getline(iss, value)) {
+                // Analizar y configurar las propiedades del servidor según las líneas del archivo
+                if (key == "port") {
+                    config.port = std::stoi(value);
+                } else if (key == "server_name") {
+                    config.serverName = value;
+                } else if (key == "error_page_404") {
+                    config.errorPage404 = value;
+                }
+                // Agrega más opciones de configuración según sea necesario
+            }
+        }
+        file.close();
+    } else {
+        // Si no se puede abrir el archivo, imprimir un mensaje de error
+        std::cerr << "Error: Unable to open configuration file" << std::endl;
+        // Salir del programa o manejar el error según sea necesario
+        exit(EXIT_FAILURE);
+    }
+    // Crear un socket
     listening = socket(AF_INET, SOCK_STREAM, 0);
     if (listening == -1) {
         perror("Can't create a socket");
@@ -11,7 +38,7 @@ SocketServer::SocketServer(int port) {
     // Bind the socket to a IP/port
     memset(&hint, 0, sizeof(hint));
     hint.sin_family = AF_INET;
-    hint.sin_port = htons(port);
+    hint.sin_port = htons(config.port); // Usar el puerto configurado
     hint.sin_addr.s_addr = INADDR_ANY;
 
     if (bind(listening, (struct sockaddr *)&hint, sizeof(hint)) == -1) {
@@ -66,39 +93,29 @@ void SocketServer::Start() {
     }
 }
 
-// void SocketServer::Start() {
-//     // Accept a call
-//     clientSize = sizeof(client);
-//     clientSocket = accept(listening, (struct sockaddr *)&client, &clientSize);
-//     if (clientSocket == -1) {
-//         perror("Problem with client connecting");
-//         exit(EXIT_FAILURE);
-//     }
+void SocketServer::handleRequest(const std::string& request) {
+    // Handle the request based on HTTP method
+    HTTPRequest httpRequest(request);
+    
+    // Obtener el método HTTP
+    std::string method = httpRequest.getMethod();
 
-//     // Convert IP address from network byte order to string
-//     char *ip = inet_ntoa(client.sin_addr);
+    // Obtener la ruta solicitada
+    std::string path = httpRequest.getPath();
 
-//     // Print client information
-//     std::cout << "Client connected: " << ip << ":" << ntohs(client.sin_port);
+    // Imprimir el método y la ruta
+    std::cout << "Method: " << method << std::endl;
+    std::cout << "Path: " << path << std::endl;
 
-//     // While receiving- display message, echo message
-//     char buffer[4096];
-//     while (true) {
-//         // Clear the buffer
-//         memset(buffer, 0, sizeof(buffer));
-//         // Wait for a message
-//         int bytesRecv = recv(clientSocket, buffer, sizeof(buffer), 0);
-//         if (bytesRecv == -1) {
-//             perror("There was a connection issue");
-//             break;
-//         }
-//         if (bytesRecv == 0) {
-//             std::cout << "The client disconnected" << std::endl;
-//             break;
-//         }
-//         // Display the message
-//         std::cout << "Received: " << std::string(buffer, 0, bytesRecv);
-//         // Resend the message
-//         send(clientSocket, buffer, bytesRecv, 0);
-//     }
-// }
+    // Implementar la lógica para manejar diferentes métodos HTTP, como GET, POST, DELETE, etc.
+    if (method == "GET") {
+        // Implementar la lógica para manejar la solicitud GET
+    } else if (method == "POST") {
+        // Implementar la lógica para manejar la solicitud POST
+    } else if (method == "DELETE") {
+        // Implementar la lógica para manejar la solicitud DELETE
+    } else {
+        // Método HTTP no compatible, devolver un error
+        // Implementar la lógica para manejar otros métodos HTTP
+    }
+}

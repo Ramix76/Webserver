@@ -1,13 +1,4 @@
-#include <iostream>
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <unistd.h>
-#include <netdb.h>
-#include <arpa/inet.h>
-#include <strings.h>
-#include <string>
-#include <cstring> // For memset
-#include <cerrno> // For errno
+#include "SocketClient.hpp"
 
 using namespace std;
 

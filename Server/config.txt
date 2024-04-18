@@ -1,0 +1,3 @@
+port=54000
+server_name=MyServer
+error_page_404=404.html

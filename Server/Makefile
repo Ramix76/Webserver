@@ -6,7 +6,7 @@
 #    By: framos-p <framos-p@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/07/25 16:46:08 by framos-p          #+#    #+#              #
-#    Updated: 2024/04/18 12:52:34 by framos-p         ###   ########.fr        #
+#    Updated: 2024/04/18 15:33:32 by framos-p         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -17,7 +17,8 @@ SRCS				=	srcs/
 
 
 SRCS_FILES			=	$(SRCS)main.cpp \
-						$(SRCS)SocketServer.cpp
+						$(SRCS)SocketServer.cpp \
+						$(SRCS)HTTPRequest.cpp
 						
 CC					=	g++
 CPPFLAGS			=	-O0 -g -I$(INC) -Wall -Wextra -Werror -MMD -std=c++98

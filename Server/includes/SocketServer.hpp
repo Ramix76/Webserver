@@ -9,6 +9,16 @@
 #include <arpa/inet.h>
 #include <cstring> // For memset
 #include <cerrno> // For errno
+#include <fstream>
+#include <sstream>
+
+// Define una estructura para almacenar la configuración del servidor
+struct ServerConfig {
+    int port;
+    std::string serverName;
+    std::string errorPage404;
+    // Agrega más propiedades según sea necesario
+};
 
 class SocketServer {
 private:
@@ -17,11 +27,14 @@ private:
     sockaddr_in client;
     socklen_t clientSize;
     int clientSocket;
+    ServerConfig config; // Propiedad para almacenar la configuración del servidor
 
 public:
-    SocketServer(int port);
+    SocketServer(const std::string& configFile);
     ~SocketServer();
     void Start();
+
+    void handleRequest(const std::string& request);
 };
 
 #endif /* SOCKETSERVER_HPP */
