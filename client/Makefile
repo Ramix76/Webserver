@@ -6,26 +6,21 @@
 #    By: framos-p <framos-p@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/07/25 16:46:08 by framos-p          #+#    #+#              #
-#    Updated: 2024/04/17 16:19:40 by framos-p         ###   ########.fr        #
+#    Updated: 2024/04/18 14:41:37 by framos-p         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-NAME				=	webserver
+NAME				=	webclient
 
 INC					=	includes/
 SRCS				=	srcs/
 
 
 SRCS_FILES			=	$(SRCS)main.cpp \
-						$(SRCS)Servers/SimpleServer.cpp \
-						$(SRCS)Servers/TestServer.cpp \
-						$(SRCS)Sockets/SimpleSocket.cpp \
-						$(SRCS)Sockets/ListeningSocket.cpp \
-						$(SRCS)Sockets/BindingSocket.cpp \
-						$(SRCS)Sockets/ConnectingSocket.cpp
-
+						$(SRCS)SocketClient.cpp
+						
 CC					=	g++
-CPPFLAGS			=	-g -I$(INC) -Wall -Wextra -Werror -MMD -std=c++98
+CPPFLAGS			=	-O0 -g -I$(INC) -Wall -Wextra -Werror -MMD -std=c++98
 LDLIBS      		= 	-lstdc++
 RM 					=	rm -rf
 
@@ -46,17 +41,17 @@ GREEN				=	\033[0;32m
 all: $(NAME)
 
 $(NAME)::			$(OBJS)
-					@echo "\n$(YELLOW)Linking...$(GREEN)\n"
-					@$(CC) $(CPPFLAGS) $(LDLIBS) $(OBJS) -o $(NAME)
+					echo "\n$(YELLOW)Linking...$(GREEN)\n"
+					$(CC) $(CPPFLAGS) $(LDLIBS) $(OBJS) -o $(NAME)
 
 $(NAME)::
-					@echo "\n$(BLUE)WEBSERVER COMPILED! ✅$(DEF_COLOR)\n"
+					echo "\n$(BLUE)WEBSERVER COMPILED! ✅$(DEF_COLOR)\n"
 
 clean:
-					@$(RM) $(OBJS) $(NAME)
-					@$(RM) $(DEPS) 
-					@echo "\n✅$(YELLOW)Clean: $(RED)Removed WebServer.a \n$(NOCOLOR)"
-					@echo "\n☑️ $(YELLOW)Clean: $(RED)Removed all the \".o\" files \n$(NOCOLOR)"
+					$(RM) $(OBJS) $(NAME)
+					$(RM) $(DEPS) 
+					echo "\n✅$(YELLOW)Clean: $(RED)Removed WebServer.a \n$(NOCOLOR)"
+					echo "\n☑️ $(YELLOW)Clean: $(RED)Removed all the \".o\ and \".d\" files \n$(NOCOLOR)"
 
 fclean: clean
 
