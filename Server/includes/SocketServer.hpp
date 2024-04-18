@@ -28,6 +28,7 @@ private:
     socklen_t clientSize;
     int clientSocket;
     ServerConfig config; // Propiedad para almacenar la configuración del servidor
+    std::ofstream logFile; // Archivo de registro
 
 public:
     SocketServer(const std::string& configFile);

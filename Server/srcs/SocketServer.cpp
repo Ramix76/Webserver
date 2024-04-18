@@ -2,6 +2,16 @@
 #include "HTTPRequest.hpp"
 
 SocketServer::SocketServer(const std::string& configFile) {
+    // Abrir el archivo de registro
+    logFile.open("server.log", std::ios::out | std::ios::app);
+    if (!logFile.is_open()) {
+        std::cerr << "Error: Unable to open log file. errno: " << errno << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    else
+    {
+        std::cout << "Log file opened successfully" << std::endl; // Mensaje de depuración
+    }
     // Leer y analizar el archivo de configuración
     std::ifstream file(configFile);
     if (file.is_open()) {
@@ -54,6 +64,9 @@ SocketServer::SocketServer(const std::string& configFile) {
 }
 
 SocketServer::~SocketServer() {
+    // Cerrar el archivo de registro
+    logFile.close();
+
     // Close client socket
     close(clientSocket);
 
@@ -102,6 +115,25 @@ void SocketServer::handleRequest(const std::string& request) {
 
     // Obtener la ruta solicitada
     std::string path = httpRequest.getPath();
+
+    // Abrir el archivo de registro (depuración)
+    std::cout << "Opening log file..." << std::endl;
+    logFile.open("server.log", std::ios::out | std::ios::app);
+    if (!logFile.is_open()) {
+        std::cerr << "Error: Unable to open log file" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    std::cout << "Log file opened successfully" << std::endl;
+
+    // Registrar la solicitud en el archivo de registro (depuración)
+    std::cout << "Writing to log file..." << std::endl;
+    logFile << "Received request - Method: " << method << ", Path: " << path << std::endl;
+    std::cout << "Data written to log file" << std::endl;
+
+    // Vaciar el búfer del archivo de registro (depuración)
+    std::cout << "Flushing log file buffer..." << std::endl;
+    logFile.flush(); // Vaciar el búfer
+    std::cout << "Log file buffer flushed" << std::endl;
 
     // Imprimir el método y la ruta
     std::cout << "Method: " << method << std::endl;
