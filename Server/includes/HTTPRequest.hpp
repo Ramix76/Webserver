@@ -13,20 +13,21 @@
 #include <sstream>
 #include <map>
 
-class HTTPRequest {
-private:
-    std::string method;
-    std::string path;
-    std::map<std::string, std::string> headers;
-    std::string body;
+class HTTPRequest
+{
+    private:
+        std::string method;
+        std::string path;
+        std::map<std::string, std::string> headers;
+        std::string body;
 
-public:
-    HTTPRequest(const std::string& request);
+    public:
+        HTTPRequest(const std::string& request);
 
-    std::string getMethod() const { return method; }
-    std::string getPath() const { return path; }
-    std::string getHeader(const std::string& key) const;
-    std::string getBody() const { return body; }
+        std::string getMethod() const { return method; }
+        std::string getPath() const { return path; }
+        std::string getHeader(const std::string& key) const;
+        std::string getBody() const { return body; }
 };
 
 #endif /* HTTPREQUEST_HPP */

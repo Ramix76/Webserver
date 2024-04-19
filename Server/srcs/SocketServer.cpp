@@ -1,38 +1,53 @@
 #include "SocketServer.hpp"
 #include "HTTPRequest.hpp"
 
-SocketServer::SocketServer(const std::string& configFile) {
+SocketServer::SocketServer(const std::string& configFile)
+{
     // Abrir el archivo de registro
     logFile.open("server.log", std::ios::out | std::ios::app);
-    if (!logFile.is_open()) {
+    if (!logFile.is_open())
+    {
         std::cerr << "Error: Unable to open log file. errno: " << errno << std::endl;
         exit(EXIT_FAILURE);
     }
     else
     {
         std::cout << "Log file opened successfully" << std::endl; // Mensaje de depuración
+        logFile << "Log file opened successfully" << std::endl;
+        logFile.flush(); // Flush buffer to ensure data is written to the file
     }
+
     // Leer y analizar el archivo de configuración
     std::ifstream file(configFile);
-    if (file.is_open()) {
+    if (file.is_open())
+    {
         std::string line;
-        while (std::getline(file, line)) {
+        while (std::getline(file, line))
+        {
             std::istringstream iss(line);
             std::string key, value;
-            if (std::getline(iss, key, '=') && std::getline(iss, value)) {
+            if (std::getline(iss, key, '=') && std::getline(iss, value))
+            {
                 // Analizar y configurar las propiedades del servidor según las líneas del archivo
-                if (key == "port") {
+                if (key == "port")
+                {
                     config.port = std::stoi(value);
-                } else if (key == "server_name") {
+                }
+                else if (key == "server_name")
+                {
                     config.serverName = value;
-                } else if (key == "error_page_404") {
+                }
+                else if (key == "error_page_404")
+                {
                     config.errorPage404 = value;
                 }
                 // Agrega más opciones de configuración según sea necesario
             }
         }
         file.close();
-    } else {
+    }
+    else
+    {
         // Si no se puede abrir el archivo, imprimir un mensaje de error
         std::cerr << "Error: Unable to open configuration file" << std::endl;
         // Salir del programa o manejar el error según sea necesario
@@ -40,7 +55,8 @@ SocketServer::SocketServer(const std::string& configFile) {
     }
     // Crear un socket
     listening = socket(AF_INET, SOCK_STREAM, 0);
-    if (listening == -1) {
+    if (listening == -1)
+    {
         perror("Can't create a socket");
         exit(EXIT_FAILURE);
     }
@@ -51,19 +67,25 @@ SocketServer::SocketServer(const std::string& configFile) {
     hint.sin_port = htons(config.port); // Usar el puerto configurado
     hint.sin_addr.s_addr = INADDR_ANY;
 
-    if (bind(listening, (struct sockaddr *)&hint, sizeof(hint)) == -1) {
+    if (bind(listening, (struct sockaddr *)&hint, sizeof(hint)) == -1)
+    {
         perror("Can't bind to IP/port");
         exit(EXIT_FAILURE);
     }
 
     // Mark the socket for listening in
-    if (listen(listening, SOMAXCONN) == -1) {
+    if (listen(listening, SOMAXCONN) == -1)
+    {
         perror("Can't listen");
         exit(EXIT_FAILURE);
     }
+    std::cout << "Server listening for connections..." << std::endl;
+    logFile << "Server listening for connections..." << std::endl;
+    logFile.flush(); // Flush buffer to ensure data is written to the file
 }
 
-SocketServer::~SocketServer() {
+SocketServer::~SocketServer()
+{
     // Cerrar el archivo de registro
     logFile.close();
 
@@ -74,11 +96,13 @@ SocketServer::~SocketServer() {
     close(listening);
 }
 
-void SocketServer::Start() {
+void SocketServer::Start()
+{
     // Accept a call
     clientSize = sizeof(client);
     clientSocket = accept(listening, (struct sockaddr *)&client, &clientSize);
-    if (clientSocket == -1) {
+    if (clientSocket == -1)
+    {
         perror("Problem with client connecting");
         exit(EXIT_FAILURE);
     }
@@ -88,25 +112,38 @@ void SocketServer::Start() {
     inet_ntop(AF_INET, &client.sin_addr, clientIP, INET_ADDRSTRLEN);
     std::cout << "Client connected: " << clientIP << ":" << ntohs(client.sin_port) << std::endl;
 
+    // Write client connection information to log file
+    logFile << "Client connected: " << clientIP << ":" << ntohs(client.sin_port) << std::endl;
+    logFile.flush(); // Flush buffer to ensure data is written to the file
+
     // While receiving- display message, echo message
     char buffer[4096];
     ssize_t bytesRecv;
-    while ((bytesRecv = read(clientSocket, buffer, sizeof(buffer))) > 0) {
+    while ((bytesRecv = read(clientSocket, buffer, sizeof(buffer))) > 0)
+    {
         // Display the received message
         std::cout << "Received from client: " << buffer << std::endl;
+        logFile << "Received from client: " << buffer << std::endl;
+        logFile.flush(); // Flush buffer to ensure data is written to the file
         // Resend the message
         send(clientSocket, buffer, bytesRecv, 0);
     }
 
     // Check for errors or client disconnect
-    if (bytesRecv == 0) {
+    if (bytesRecv == 0)
+    {
         std::cout << "The client disconnected" << std::endl;
-    } else {
+        logFile << "The client disconnected" << std::endl;
+    }
+    else
+    {
         perror("There was a connection issue");
+        logFile << "There was a connection issue" << std::endl;
     }
 }
 
-void SocketServer::handleRequest(const std::string& request) {
+void SocketServer::handleRequest(const std::string& request)
+{
     // Handle the request based on HTTP method
     HTTPRequest httpRequest(request);
     
@@ -116,37 +153,29 @@ void SocketServer::handleRequest(const std::string& request) {
     // Obtener la ruta solicitada
     std::string path = httpRequest.getPath();
 
-    // Abrir el archivo de registro (depuración)
-    std::cout << "Opening log file..." << std::endl;
-    logFile.open("server.log", std::ios::out | std::ios::app);
-    if (!logFile.is_open()) {
-        std::cerr << "Error: Unable to open log file" << std::endl;
-        exit(EXIT_FAILURE);
-    }
-    std::cout << "Log file opened successfully" << std::endl;
-
-    // Registrar la solicitud en el archivo de registro (depuración)
-    std::cout << "Writing to log file..." << std::endl;
+    // Write debug information to log file
     logFile << "Received request - Method: " << method << ", Path: " << path << std::endl;
-    std::cout << "Data written to log file" << std::endl;
-
-    // Vaciar el búfer del archivo de registro (depuración)
-    std::cout << "Flushing log file buffer..." << std::endl;
-    logFile.flush(); // Vaciar el búfer
-    std::cout << "Log file buffer flushed" << std::endl;
+    logFile.flush(); // Flush buffer to ensure data is written to the file
 
     // Imprimir el método y la ruta
     std::cout << "Method: " << method << std::endl;
     std::cout << "Path: " << path << std::endl;
 
     // Implementar la lógica para manejar diferentes métodos HTTP, como GET, POST, DELETE, etc.
-    if (method == "GET") {
+    if (method == "GET")
+    {
         // Implementar la lógica para manejar la solicitud GET
-    } else if (method == "POST") {
+    }
+    else if (method == "POST")
+    {
         // Implementar la lógica para manejar la solicitud POST
-    } else if (method == "DELETE") {
+    }
+    else if (method == "DELETE")
+    {
         // Implementar la lógica para manejar la solicitud DELETE
-    } else {
+    }
+    else
+    {
         // Método HTTP no compatible, devolver un error
         // Implementar la lógica para manejar otros métodos HTTP
     }

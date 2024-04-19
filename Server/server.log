@@ -1,0 +1,12 @@
+Client connected: 127.0.0.1:54316
+Log file opened successfully
+Server listening for connections...
+Client connected: 127.0.0.1:54502
+Received from client: hola
+Received from client: adios
+The client disconnected
+Log file opened successfully
+Server listening for connections...
+Client connected: 127.0.0.1:54505
+Received from client: hehehe
+The client disconnected
