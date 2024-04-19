@@ -11,6 +11,7 @@
 #include <cerrno> // For errno
 #include <fstream>
 #include <sstream>
+#include <thread>
 
 // Define una estructura para almacenar la configuración del servidor
 struct ServerConfig
@@ -37,7 +38,15 @@ class SocketServer
         ~SocketServer();
         void Start();
 
-        void handleRequest(const std::string& request);
+        // void handleRequest(const std::string& request);
+        std::string getHTTPResponse(const std::string& method, const std::string& path);
+        void handleRequest(int clientSocket);
+        void handleHTTPRequest(const std::string& request, int clientSocket);
+        void handleGETRequest(const std::string& path, int clientSocket);
+        void handlePOSTRequest(const std::string& path, int clientSocket, const std::string& request);
+        void handleDELETERequest(const std::string& path, int clientSocket);
+        void sendHTTPResponse(int clientSocket, const std::string& status, const std::string& content, int statusCode);
+        void sendResponse(int clientSocket, const std::string& response);
 };
 
 #endif /* SOCKETSERVER_HPP */

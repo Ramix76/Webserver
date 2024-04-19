@@ -1,0 +1,37 @@
+Para crear un servidor HTTP en C++98 según los requisitos proporcionados,
+	 primero necesitaremos entender y diseñar la arquitectura general del servidor.
+	 Aquí hay un enfoque básico para comenzar:
+
+Análisis de la configuración: El servidor debe leer y analizar el archivo de configuración
+	 proporcionado al ejecutarse. Esto incluye la información sobre los puertos y hosts que
+	 el servidor debe escuchar, las páginas de error predeterminadas, las rutas y configuraciones
+	 específicas para las solicitudes de los clientes, etc.
+
+Inicialización del servidor: Una vez que se ha analizado la configuración, el servidor debe
+	inicializarse adecuadamente para escuchar en los puertos especificados.
+	Esto implica la creación de sockets, la vinculación a direcciones y puertos específicos,
+	y la configuración para aceptar conexiones entrantes.
+
+Gestión de solicitudes HTTP: El servidor debe ser capaz de manejar las solicitudes HTTP entrantes.
+	Esto implica recibir las solicitudes de los clientes, analizarlas para extraer información relevante
+	(método, ruta, encabezados, cuerpo, etc.), procesar las solicitudes según las configuraciones y reglas definidas,
+	y enviar respuestas adecuadas.
+
+Lógica del servidor: El servidor debe implementar la lógica para manejar diferentes métodos HTTP (GET, POST, DELETE, etc.),
+	servir archivos estáticos, procesar solicitudes de CGI, manejar la carga de archivos por parte de los clientes,
+	y responder con códigos de estado HTTP precisos.
+
+Gestión de la concurrencia y la E/S no bloqueante: Para garantizar que el servidor sea eficiente y no bloquee,
+	es fundamental utilizar E/S no bloqueante y manejar múltiples conexiones concurrentes.
+	Esto puede lograrse utilizando técnicas como poll(), select(), epoll(), kqueue(), etc.
+
+Pruebas y depuración: Es importante realizar pruebas exhaustivas del servidor para garantizar su estabilidad,
+	seguridad y rendimiento. Esto incluye pruebas de carga para evaluar la capacidad del servidor para manejar
+	múltiples solicitudes concurrentes y situaciones de estrés.
+
+Documentación y comentarios: Asegúrate de documentar adecuadamente tu código y agregar comentarios explicativos
+	donde sea necesario para facilitar la comprensión y el mantenimiento del código.
+
+Este enfoque proporciona una estructura básica para comenzar a desarrollar el servidor HTTP.
+A medida que avances en la implementación, podrás abordar los detalles específicos y los requisitos
+detallados en la descripción del proyecto.
