@@ -3,22 +3,13 @@
 #include "HandleRequestWrapper.hpp"
 
 SocketServer::SocketServer(const std::string& configFile)
+    : logger("server.log") // Inicializa el objeto Logger con el nombre del archivo de registro
 {
-    // Abrir el archivo de registro
-    logFile.open("server.log", std::ios::out | std::ios::app);
-    if (!logFile.is_open())
-    {
-        std::cerr << "Error: Unable to open log file. errno: " << errno << std::endl;
-        exit(EXIT_FAILURE);
-    }
-    else
-    {
-        std::cout << "Log file opened successfully" << std::endl; // Mensaje de depuración
-        logFile << "Log file opened successfully" << std::endl;
-        logFile.flush(); // Flush buffer to ensure data is written to the file
-    }
-
     // Leer y analizar el archivo de configuración
+    
+    // Log que se está leyendo y analizando el archivo de configuración
+    logger.log("Reading and parsing the configuration file...");
+
     std::ifstream file(configFile);
     if (file.is_open())
     {
@@ -55,6 +46,10 @@ SocketServer::SocketServer(const std::string& configFile)
         exit(EXIT_FAILURE);
     }
     // Crear un socket
+
+    // Log que se está creando el socket
+    logger.log("Creating a socket...");
+
     listening = socket(AF_INET, SOCK_STREAM, 0);
     if (listening == -1)
     {
@@ -70,6 +65,10 @@ SocketServer::SocketServer(const std::string& configFile)
     }
 
     // Bind the socket to a IP/port
+
+    // Log que se está vinculando el socket a una IP/puerto
+    logger.log("Binding the socket to IP/port...");
+
     memset(&hint, 0, sizeof(hint));
     hint.sin_family = AF_INET;
     hint.sin_port = htons(config.port); // Usar el puerto configurado
@@ -87,9 +86,9 @@ SocketServer::SocketServer(const std::string& configFile)
         perror("Can't listen");
         exit(EXIT_FAILURE);
     }
-    std::cout << "Server listening for connections..." << std::endl;
-    logFile << "Server listening for connections..." << std::endl;
-    logFile.flush(); // Flush buffer to ensure data is written to the file
+
+    // Log que el servidor ha comenzado
+    logger.log("Server has started.");
 }
 
 SocketServer::~SocketServer()
@@ -105,8 +104,17 @@ SocketServer::~SocketServer()
 }
 
 void SocketServer::Start() {
+    // Iniciar el servidor y manejar las solicitudes entrantes
+
+    // Log que el servidor ha iniciado y está esperando conexiones entrantes
+    logger.log("Server started and waiting for incoming connections...");
+
     while (true) {
         // Accept a call
+
+        // Log que se ha aceptado una conexión de cliente
+        logger.log("Accepted a connection from a client.");
+
         clientSize = sizeof(client);
         clientSocket = accept(listening, (struct sockaddr *)&client, &clientSize);
         if (clientSocket == -1) {
@@ -120,6 +128,10 @@ void SocketServer::Start() {
         std::cout << "Client connected: " << clientIP << ":" << ntohs(client.sin_port) << std::endl;
 
         // Create a new thread to handle the request using a function object
+        
+        // Log que se ha creado un nuevo hilo para manejar la solicitud del cliente
+        logger.log("Created a new thread to handle the client request.");
+
         HandleRequestWrapper wrapper(this, clientSocket);
         std::thread clientThread(wrapper);
         clientThread.detach(); // Detach the thread to run independently
@@ -128,23 +140,44 @@ void SocketServer::Start() {
 
 void SocketServer::sendResponse(int clientSocket, const std::string& response) {
     // Envía la respuesta al cliente
+
+    // Log que se está enviando una respuesta al cliente
+    logger.log("Sending response to client...");
+    std::cout << "Sending response to client." << std::endl;
+
     ssize_t bytesSent = send(clientSocket, response.c_str(), response.size(), 0);
     if (bytesSent == -1) {
         perror("Error sending response");
+    } else {
+        // Envía un acknowledgment al cliente
+        const std::string acknowledgment = " ACK "; // Puedes personalizar este mensaje según tus necesidades
+        ssize_t ackSent = send(clientSocket, acknowledgment.c_str(), acknowledgment.size(), 0);
+        if (ackSent == -1) {
+            // Log que el servidor ha enviado un ACK al cliente
+            logger.log("Sent ACK to client");
+            perror("Error sending acknowledgment");
+        }
     }
 }
 
 void SocketServer::handleRequest(int clientSocket) {
+    // Log the start of handling a request
+    logger.log("Handling a new request...");
+
     // While loop to handle multiple requests on the same connection
     while (true) {
         // Receive the request from the client
+        logger.log("Received a request from client.");
+        std::cout << "Received a request from client." << std::endl;
         char buffer[4096];
         ssize_t bytesRecv = recv(clientSocket, buffer, sizeof(buffer), 0);
         if (bytesRecv <= 0) {
             if (bytesRecv == 0) {
                 std::cout << "The client disconnected" << std::endl;
+                logger.log("The client disconnected");
             } else {
                 perror("There was a connection issue");
+                logger.log("There was a connection issue");
             }
             
             close(clientSocket);
@@ -154,6 +187,8 @@ void SocketServer::handleRequest(int clientSocket) {
         // Process the received request
         std::string request(buffer, bytesRecv);
         handleHTTPRequest(request, clientSocket);
+        logger.log("Processed client request." + request);
+        std::cout << "Processed client request: " <<  request << std::endl;
     }
 }
 
@@ -167,7 +202,8 @@ void SocketServer::handleHTTPRequest(const std::string& request, int clientSocke
     // Request body (if applicable)
 
     // Log the received message from the client
-    std::cout << "Received message from client: " << request << std::endl;
+    logger.log("Received HTTP request from client: " + request);
+    std::cout << "Received HTTP request from client: " << request <<  std::endl;
 
     // Aquí puedes procesar la solicitud y generar la respuesta apropiada
     std::string response = "HTTP/1.1 200 OK\r\nContent-Length: 13\r\n\r\nHello, dear client!";
@@ -190,21 +226,28 @@ void SocketServer::handleHTTPRequest(const std::string& request, int clientSocke
     } else {
         sendHTTPResponse(clientSocket, "405 Method Not Allowed", "Method not allowed", 405);
     }
+    logger.log("Processed HTTP request from client.");
+    std::cout << "Processed HTTP request from client." << std::endl;
 }
 
 void SocketServer::handleGETRequest(const std::string& /*path*/, int /*clientSocket*/) {
     // Handle GET request logic here
     // Serve static files, generate dynamic content, etc.
+    // Log the received HTTP request
+    // logger.log("Handling a GET request: " + request);
 }
 
 void SocketServer::handlePOSTRequest(const std::string& /*path*/, int /*clientSocket*/, const std::string& /*request*/) {
     // Handle POST request logic here
     // Process form data, upload files, etc.
+    // Log the received HTTP request
+    // logger.log("Handling a POST request: " + request);
 }
 
 void SocketServer::handleDELETERequest(const std::string& /*path*/, int /*clientSocket*/) {
     // Handle DELETE request logic here
     // Delete files, resources, etc.
+    // logger.log("Handling a DELETE request: " + request);
 }
 
 void SocketServer::sendHTTPResponse(int clientSocket, const std::string& status, const std::string& content, int statusCode) {
@@ -218,207 +261,3 @@ void SocketServer::sendHTTPResponse(int clientSocket, const std::string& status,
     std::string response = oss.str();
     send(clientSocket, response.c_str(), response.length(), 0);
 }
-
-// void SocketServer::Start() {
-//     while (true) {
-//         // Accept a call
-//         clientSize = sizeof(client);
-//         clientSocket = accept(listening, (struct sockaddr *)&client, &clientSize);
-//         if (clientSocket == -1) {
-//             perror("Problem with client connecting");
-//             exit(EXIT_FAILURE);
-//         }
-
-//         // Print client information
-//         char clientIP[INET_ADDRSTRLEN];
-//         inet_ntop(AF_INET, &client.sin_addr, clientIP, INET_ADDRSTRLEN);
-//         std::cout << "Client connected: " << clientIP << ":" << ntohs(client.sin_port) << std::endl;
-
-//         // Receive request from client
-//         char buffer[4096];
-//         ssize_t bytesRecv;
-//         while ((bytesRecv = recv(clientSocket, buffer, sizeof(buffer), 0)) > 0) {
-//             // Display the received message
-//             std::cout << "Received from client: " << buffer << std::endl;
-
-//             // Handle the request
-//             // handleRequest(std::string(buffer, bytesRecv));
-//             handleRequest(buffer);
-
-//             // Resend the message
-//             send(clientSocket, buffer, bytesRecv, 0);
-//         }
-
-//         // Check for errors or client disconnect
-//         if (bytesRecv == 0) {
-//             std::cout << "The client disconnected" << std::endl;
-//         } else {
-//             std::cerr << "Error: There was a connection issue. errno: " << errno << std::endl;
-//         }
-
-//         // Close client socket
-//         close(clientSocket);
-//     }
-// }
-
-// void SocketServer::handleRequest(const std::string& request) {
-//     // Handle the request based on HTTP method
-//     HTTPRequest httpRequest(request);
-    
-//     // Obtener el método HTTP
-//     std::string method = httpRequest.getMethod();
-
-//     // Obtener la ruta solicitada
-//     std::string path = httpRequest.getPath();
-
-//     // Log the request
-//     std::ofstream logFile("server.log", std::ios::out | std::ios::app);
-//     if (logFile.is_open()) {
-//         logFile << "Received request - Method: " << method << ", Path: " << path << std::endl;
-//         logFile.close();
-//     } else {
-//         std::cerr << "Error: Unable to open log file" << std::endl;
-//     }
-
-//     // Generate HTTP response
-//     std::string response = getHTTPResponse(method, path);
-
-//     // Send the response
-//     send(clientSocket, response.c_str(), response.size(), 0);
-// }
-
-
-// std::string SocketServer::getHTTPResponse(const std::string& method, const std::string& path) {
-//     // Handle GET method
-//     if (method == "GET") {
-//         std::ifstream file(path.c_str(), std::ios::in | std::ios::binary);
-//         if (file) {
-//             std::ostringstream contents;
-//             contents << file.rdbuf();
-//             file.close();
-//             std::string content = contents.str();
-
-//             // Generate HTTP response
-//             std::ostringstream response;
-//             response << "HTTP/1.1 200 OK\r\n";
-//             response << "Content-Length: " << content.size() << "\r\n";
-//             response << "\r\n";
-//             response << content;
-//             return response.str();
-//         } else {
-//             // File not found, generate 404 response
-//             std::string notFoundContent = "404 Not Found";
-//             std::ostringstream response;
-//             response << "HTTP/1.1 404 Not Found\r\n";
-//             response << "Content-Length: " << notFoundContent.size() << "\r\n";
-//             response << "\r\n";
-//             response << notFoundContent;
-//             return response.str();
-//         }
-//     } else if (method == "POST" || method == "DELETE") {
-//         // Handle other methods (POST and DELETE)
-//         // You can add specific logic for these methods here
-//         // For now, return 405 Method Not Allowed
-//         std::string methodNotAllowedContent = "405 Method Not Allowed";
-//         std::ostringstream response;
-//         response << "HTTP/1.1 405 Method Not Allowed\r\n";
-//         response << "Content-Length: " << methodNotAllowedContent.size() << "\r\n";
-//         response << "\r\n";
-//         response << methodNotAllowedContent;
-//         return response.str();
-//     } else {
-//         // Unsupported HTTP method, generate 405 response
-//         std::string methodNotAllowedContent = "405 Method Not Allowed";
-//         std::ostringstream response;
-//         response << "HTTP/1.1 405 Method Not Allowed\r\n";
-//         response << "Content-Length: " << methodNotAllowedContent.size() << "\r\n";
-//         response << "\r\n";
-//         response << methodNotAllowedContent;
-//         return response.str();
-//     }
-// }
-
-// void SocketServer::Start()
-// {
-//     // Accept a call
-//     clientSize = sizeof(client);
-//     clientSocket = accept(listening, (struct sockaddr *)&client, &clientSize);
-//     if (clientSocket == -1)
-//     {
-//         perror("Problem with client connecting");
-//         exit(EXIT_FAILURE);
-//     }
-
-//     // Print client information
-//     char clientIP[INET_ADDRSTRLEN];
-//     inet_ntop(AF_INET, &client.sin_addr, clientIP, INET_ADDRSTRLEN);
-//     std::cout << "Client connected: " << clientIP << ":" << ntohs(client.sin_port) << std::endl;
-
-//     // Write client connection information to log file
-//     logFile << "Client connected: " << clientIP << ":" << ntohs(client.sin_port) << std::endl;
-//     logFile.flush(); // Flush buffer to ensure data is written to the file
-
-//     // While receiving- display message, echo message
-//     char buffer[4096];
-//     ssize_t bytesRecv;
-//     while ((bytesRecv = read(clientSocket, buffer, sizeof(buffer))) > 0)
-//     {
-//         // Display the received message
-//         std::cout << "Received from client: " << buffer << std::endl;
-//         logFile << "Received from client: " << buffer << std::endl;
-//         logFile.flush(); // Flush buffer to ensure data is written to the file
-//         // Resend the message
-//         send(clientSocket, buffer, bytesRecv, 0);
-//     }
-
-//     // Check for errors or client disconnect
-//     if (bytesRecv == 0)
-//     {
-//         std::cout << "The client disconnected" << std::endl;
-//         logFile << "The client disconnected" << std::endl;
-//     }
-//     else
-//     {
-//         perror("There was a connection issue");
-//         logFile << "There was a connection issue" << std::endl;
-//     }
-// }
-
-// void SocketServer::handleRequest(const std::string& request)
-// {
-//     // Handle the request based on HTTP method
-//     HTTPRequest httpRequest(request);
-    
-//     // Obtener el método HTTP
-//     std::string method = httpRequest.getMethod();
-
-//     // Obtener la ruta solicitada
-//     std::string path = httpRequest.getPath();
-
-//     // Write debug information to log file
-//     logFile << "Received request - Method: " << method << ", Path: " << path << std::endl;
-//     logFile.flush(); // Flush buffer to ensure data is written to the file
-
-//     // Imprimir el método y la ruta
-//     std::cout << "Method: " << method << std::endl;
-//     std::cout << "Path: " << path << std::endl;
-
-//     // Implementar la lógica para manejar diferentes métodos HTTP, como GET, POST, DELETE, etc.
-//     if (method == "GET")
-//     {
-//         // Implementar la lógica para manejar la solicitud GET
-//     }
-//     else if (method == "POST")
-//     {
-//         // Implementar la lógica para manejar la solicitud POST
-//     }
-//     else if (method == "DELETE")
-//     {
-//         // Implementar la lógica para manejar la solicitud DELETE
-//     }
-//     else
-//     {
-//         // Método HTTP no compatible, devolver un error
-//         // Implementar la lógica para manejar otros métodos HTTP
-//     }
-// }

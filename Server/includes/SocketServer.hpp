@@ -1,6 +1,7 @@
 #ifndef SOCKETSERVER_HPP
 #define SOCKETSERVER_HPP
 
+#include "Logger.hpp"
 #include <iostream>
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -31,6 +32,7 @@ class SocketServer
         socklen_t clientSize;
         int clientSocket;
         ServerConfig config; // Propiedad para almacenar la configuración del servidor
+        Logger logger; // Agrega un miembro de datos Logger
         std::ofstream logFile; // Archivo de registro
 
     public:
