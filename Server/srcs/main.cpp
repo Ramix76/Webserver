@@ -1,6 +1,4 @@
 #include "SocketServer.hpp"
-#include "Logger.hpp"
-
 
 int main(int argc, char* argv[]) {
     if (argc != 2) {
@@ -10,16 +8,16 @@ int main(int argc, char* argv[]) {
 
     std::string configFile = argv[1];
 
-    // Crear una instancia de Logger
+    // Create an instance of Logger
     Logger logger("logfile.txt");
 
-    // Registrar un mensaje indicando que se está iniciando el servidor
-    logger.log("IStarting the server...");
+    // Log a message indicating that the server is starting
+    // logger.log("Starting the server...");
 
-    // Crear una instancia de SocketServer y comenzar el servidor
-    SocketServer server(configFile);
+    // Create an instance of SocketServer and start the server
+    SocketServer server(configFile, logger);
 
-    // Registrar un mensaje indicando que el servidor ha comenzado
+    // Log a message indicating that the server has started
     logger.log("The server has started.");
 
     server.Start();

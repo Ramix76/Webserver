@@ -6,7 +6,7 @@
 #    By: framos-p <framos-p@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/07/25 16:46:08 by framos-p          #+#    #+#              #
-#    Updated: 2024/04/23 13:18:27 by framos-p         ###   ########.fr        #
+#    Updated: 2024/04/23 16:37:53 by framos-p         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -53,7 +53,7 @@ clean:
 					$(RM) $(OBJS) $(NAME)
 					$(RM) $(DEPS)
 					$(RM) server.log
-					echo "\n✅$(YELLOW)Clean: $(RED)Removed WebServer.a \n$(NOCOLOR)"
+					echo "\n✅$(YELLOW)Clean: $(RED)Removed WebServer\n$(NOCOLOR)"
 					echo "\n☑️ $(YELLOW)Clean: $(RED)Removed all the \".o\ and \".d\" files \n$(NOCOLOR)"
 
 fclean: clean
