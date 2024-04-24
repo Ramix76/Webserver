@@ -20,6 +20,7 @@ struct ServerConfig
     int port;
     std::string serverName;
     std::string errorPage404;
+    std::string staticHtmlFile;
     // Agrega más propiedades según sea necesario
 };
 

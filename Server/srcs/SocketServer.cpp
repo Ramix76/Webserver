@@ -33,6 +33,11 @@ SocketServer::SocketServer(const std::string& configFile, Logger &logger) : logg
                     config.errorPage404 = value;
                     logger.log("Set 404 error page to: " + value);
                 }
+                else if (key == "static_html_file")
+                {
+                    config.staticHtmlFile = value;
+                    logger.log("Set static HTML file to: " + value);
+                }
                 // Agrega más opciones de configuración según sea necesario
             }
         }
@@ -187,20 +192,41 @@ void SocketServer::handleRequest(int clientSocket)
     std::string request(buffer, bytesRecv);
     logger.log("Request: " + request);
 
-    // Parse the HTTP request
-    HTTPRequest httpRequest(request);
+    // Extract method and path from the request
+    std::istringstream requestStream(request);
+    std::string method, path;
+    requestStream >> method >> path;
 
-    // Log the parsed method and path
-    logger.log("Method: " + httpRequest.getMethod());
-    logger.log("Path: " + httpRequest.getPath());
+    // Construct full path to static HTML file
+    std::string filePath = config.staticHtmlFile;
+    logger.log("Full path to static HTML file: " + filePath);
 
-    // Here you can add more logic to handle the HTTP request, such as routing, serving files, etc.
-    // For now, let's just send a simple response to the client
-    std::string response = "HTTP/1.1 200 OK\r\nContent-Length: 19\r\n\r\nHello, dear client!";
-    logger.log("Sending response to client:");
-    logger.log(response);
+    // Check if the request is for the static HTML file
+    if (method == "GET" && path == "/") {
+        // Open the static HTML file
+        std::ifstream file(filePath.c_str());
+        std::string response;
 
-    sendResponse(clientSocket, response);
+        if (file.is_open()) {
+            // Read the content of the file into the response
+            std::stringstream buffer;
+            buffer << file.rdbuf();
+            response = "HTTP/1.1 200 OK\r\nContent-Length: " + std::to_string(buffer.str().length()) + "\r\n\r\n" + buffer.str();
+            logger.log("Static HTML file loaded successfully");
+        } else {
+            // If the file cannot be opened, respond with a 404 error
+            response = "HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\n\r\n";
+            logger.log("Error: Static HTML file not found");
+        }
+
+        // Send the response to the client
+        sendResponse(clientSocket, response);
+    } else {
+        // If the request is not for the static HTML file, respond with a 404 error
+        std::string response = "HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\n\r\n";
+        logger.log("Error: Request is not for the static HTML file");
+        sendResponse(clientSocket, response);
+    }
 }
 
 void SocketServer::sendResponse(int clientSocket, const std::string& response)
