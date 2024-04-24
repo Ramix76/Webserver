@@ -40,6 +40,8 @@ private:
     void acceptConnection();
     void handleRequest(int clientSocket);
     void sendResponse(int clientSocket, const std::string& response);
+    std::string getMimeType(const std::string& filePath);
+    std::string readFile(const std::string& filePath);
 };
 
 #endif /* SOCKETSERVER_HPP */

@@ -1,5 +1,5 @@
 #include "SocketServer.hpp"
-// #include "HTTPRequest.hpp"
+#include "HTTPRequest.hpp"
 
 SocketServer::SocketServer(const std::string& configFile, Logger &logger) : logger(logger)
 {
@@ -187,7 +187,15 @@ void SocketServer::handleRequest(int clientSocket)
     std::string request(buffer, bytesRecv);
     logger.log("Request: " + request);
 
-    // Send a response to the client
+    // Parse the HTTP request
+    HTTPRequest httpRequest(request);
+
+    // Log the parsed method and path
+    logger.log("Method: " + httpRequest.getMethod());
+    logger.log("Path: " + httpRequest.getPath());
+
+    // Here you can add more logic to handle the HTTP request, such as routing, serving files, etc.
+    // For now, let's just send a simple response to the client
     std::string response = "HTTP/1.1 200 OK\r\nContent-Length: 19\r\n\r\nHello, dear client!";
     logger.log("Sending response to client:");
     logger.log(response);
@@ -201,5 +209,41 @@ void SocketServer::sendResponse(int clientSocket, const std::string& response)
     ssize_t bytesSent = send(clientSocket, response.c_str(), response.size(), 0);
     if (bytesSent == -1) {
         perror("Error sending response");
+    }
+}
+
+std::string SocketServer::getMimeType(const std::string& filePath) {
+    // Obtiene el tipo MIME del archivo basado en su extensión
+    std::string::size_type pos = filePath.rfind('.');
+    if (pos != std::string::npos) {
+        std::string ext = filePath.substr(pos + 1);
+        if (ext == "html" || ext == "htm") {
+            return "text/html";
+        } else if (ext == "css") {
+            return "text/css";
+        } else if (ext == "js") {
+            return "text/javascript";
+        } else if (ext == "jpg" || ext == "jpeg") {
+            return "image/jpeg";
+        } else if (ext == "png") {
+            return "image/png";
+        } else if (ext == "gif") {
+            return "image/gif";
+        } else {
+            return "application/octet-stream"; // Tipo MIME predeterminado para archivos desconocidos
+        }
+    }
+    return "application/octet-stream"; // Tipo MIME predeterminado si no se puede determinar la extensión
+}
+
+std::string SocketServer::readFile(const std::string& filePath) {
+    // Lee el contenido del archivo y lo devuelve como una cadena
+    std::ifstream file(filePath.c_str(), std::ios::binary);
+    if (file) {
+        std::ostringstream ss;
+        ss << file.rdbuf();
+        return ss.str();
+    } else {
+        return ""; // Devuelve una cadena vacía si hay algún error al leer el archivo
     }
 }
