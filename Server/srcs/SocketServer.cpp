@@ -197,35 +197,54 @@ void SocketServer::handleRequest(int clientSocket)
     std::string method, path;
     requestStream >> method >> path;
 
-    // Construct full path to static HTML file
-    std::string filePath = config.staticHtmlFile;
-    logger.log("Full path to static HTML file: " + filePath);
-
-    // Check if the request is for the static HTML file
-    if (method == "GET" && path == "/") {
-        // Open the static HTML file
+    // Check if the request is for the root path
+    if (path == "/") {
+        // Serve the static HTML file (index.html)
+        std::string filePath = config.staticHtmlFile;
         std::ifstream file(filePath.c_str());
-        std::string response;
-
         if (file.is_open()) {
-            // Read the content of the file into the response
-            std::stringstream buffer;
-            buffer << file.rdbuf();
-            response = "HTTP/1.1 200 OK\r\nContent-Length: " + std::to_string(buffer.str().length()) + "\r\n\r\n" + buffer.str();
-            logger.log("Static HTML file loaded successfully");
+            // Read the content of the file
+            std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+            file.close();
+            
+            // Determine content type based on file extension
+            std::string contentType = getMimeType(filePath);
+
+            // Construct response
+            std::string response = "HTTP/1.1 200 OK\r\nContent-Length: " + std::to_string(content.length()) + "\r\nContent-Type: " + contentType + "\r\n\r\n" + content;
+
+            // Send the response to the client
+            sendResponse(clientSocket, response);
         } else {
             // If the file cannot be opened, respond with a 404 error
-            response = "HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\n\r\n";
-            logger.log("Error: Static HTML file not found");
+            std::string response = "HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\n\r\n";
+            logger.log("Error: File not found");
+            sendResponse(clientSocket, response);
         }
-
-        // Send the response to the client
-        sendResponse(clientSocket, response);
     } else {
-        // If the request is not for the static HTML file, respond with a 404 error
-        std::string response = "HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\n\r\n";
-        logger.log("Error: Request is not for the static HTML file");
-        sendResponse(clientSocket, response);
+        // Serve other static files (e.g., CSS)
+        std::string filePath = "./styles.css";
+        //std::string filePath = path.substr(1); // Remove leading slash
+        std::ifstream file(filePath.c_str());
+        if (file.is_open()) {
+            // Read the content of the file
+            std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+            file.close();
+
+            // Determine content type based on file extension
+            std::string contentType = getMimeType(filePath);
+
+            // Construct response
+            std::string response = "HTTP/1.1 200 OK\r\nContent-Length: " + std::to_string(content.length()) + "\r\nContent-Type: " + contentType + "\r\n\r\n" + content;
+
+            // Send the response to the client
+            sendResponse(clientSocket, response);
+        } else {
+            // If the file cannot be opened, respond with a 404 error
+            std::string response = "HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\n\r\n";
+            logger.log("Error: File not found");
+            sendResponse(clientSocket, response);
+        }
     }
 }
 
@@ -273,3 +292,4 @@ std::string SocketServer::readFile(const std::string& filePath) {
         return ""; // Devuelve una cadena vacía si hay algún error al leer el archivo
     }
 }
+

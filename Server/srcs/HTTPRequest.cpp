@@ -50,3 +50,6 @@ std::string HTTPRequest::getHeader(const std::string& key) const
     std::map<std::string, std::string>::const_iterator it = headers.find(key);
     return (it != headers.end()) ? it->second : "";
 }
+
+
+
